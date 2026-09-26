@@ -10,6 +10,7 @@ import (
 	ort "github.com/yalue/onnxruntime_go"
 	xdraw "golang.org/x/image/draw"
 
+	bootstrap "landan-desktop-fyne/bootstrap"
 	domain "landan-desktop-fyne/internal/domain"
 	outputPortAnyModel "landan-desktop-fyne/internal/output/port/any/model"
 )
@@ -17,11 +18,11 @@ import (
 // 信心低於這個值的框直接丟掉。
 const fDieConfidenceThreshold = 0.25
 
-// DieModel 用 onnx 跑 die 的偵測模型。
+// DieTopDetectorModel 用 onnx 跑 die 的偵測模型。
 // 假設模型是 ultralytics 匯出的 end2end（不需要 NMS）：
 //   - 輸入 [1, 3, H, W]，RGB，0~1
 //   - 輸出 [1, N, 6]，每列是 x1, y1, x2, y2, confidence, class（座標在輸入圖的像素上）
-type DieModel struct {
+type DieTopDetectorModel struct {
 	*AbstractModel
 	session    *ort.DynamicAdvancedSession
 	inputName  string
@@ -30,7 +31,13 @@ type DieModel struct {
 	height     int
 }
 
-func NewDieModel(oAbstractModel *AbstractModel, sModelPath string) (outputPortAnyModel.DieModel, error) {
+// NewDieTopDetectorModel 從 config/onnx.yaml 的 detect.die.top 讀模型路徑。
+func NewDieTopDetectorModel(oAbstractModel *AbstractModel) (outputPortAnyModel.DieTopDetectorModel, error) {
+	sModelPath := bootstrap.CONFIG.ONNX.DETECT.DIE.TOP
+	if sModelPath == "" {
+		return nil, fmt.Errorf("onnx.detect.die.top is empty (is config/onnx.yaml filled in? run from the project root)")
+	}
+
 	aInputs, aOutputs, err := ort.GetInputOutputInfo(sModelPath)
 	if err != nil {
 		return nil, fmt.Errorf("read model %s: %w", sModelPath, err)
@@ -48,7 +55,7 @@ func NewDieModel(oAbstractModel *AbstractModel, sModelPath string) (outputPortAn
 		return nil, fmt.Errorf("load model %s: %w", sModelPath, err)
 	}
 
-	return &DieModel{
+	return &DieTopDetectorModel{
 		AbstractModel: oAbstractModel,
 		session:       oSession,
 		inputName:     aInputs[0].Name,
@@ -58,7 +65,7 @@ func NewDieModel(oAbstractModel *AbstractModel, sModelPath string) (outputPortAn
 	}, nil
 }
 
-func (oSelf *DieModel) Recognize(aImage []byte) ([]*domain.Die, error) {
+func (oSelf *DieTopDetectorModel) Recognize(aImage []byte) ([]*domain.Die, error) {
 	oSource, _, err := image.Decode(bytes.NewReader(aImage))
 	if err != nil {
 		return nil, fmt.Errorf("decode image: %w", err)
@@ -109,7 +116,7 @@ func (oSelf *DieModel) Recognize(aImage []byte) ([]*domain.Die, error) {
 }
 
 // toPlanes 把圖縮到模型輸入大小，排成 RGB 三個平面（NCHW），數值 0~1。
-func (oSelf *DieModel) toPlanes(oSource image.Image) []float32 {
+func (oSelf *DieTopDetectorModel) toPlanes(oSource image.Image) []float32 {
 	oResized := image.NewRGBA(image.Rect(0, 0, oSelf.width, oSelf.height))
 	xdraw.ApproxBiLinear.Scale(oResized, oResized.Bounds(), oSource, oSource.Bounds(), xdraw.Src, nil)
 
@@ -128,6 +135,6 @@ func (oSelf *DieModel) toPlanes(oSource image.Image) []float32 {
 }
 
 // Close 釋放 onnx session。
-func (oSelf *DieModel) Close() error {
+func (oSelf *DieTopDetectorModel) Close() error {
 	return oSelf.session.Destroy()
 }
