@@ -17,5 +17,7 @@ func NewContent() *fyne.Container {
 		oGreetingLabel.SetText("你好," + oNameEntry.Text + "!")
 	})
 
-	return container.NewVBox(oNameEntry, oButton, oGreetingLabel)
+	oForm := container.NewVBox(oNameEntry, oButton, oGreetingLabel)
+
+	return container.NewBorder(oForm, nil, nil, nil, NewCameraView())
 }
