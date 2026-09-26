@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"landan-desktop-fyne/bootstrap/launcher"
+	"landan-desktop-fyne/bootstrap"
 	"landan-desktop-fyne/internal/logger"
 )
 
@@ -14,7 +14,7 @@ var Command = &cobra.Command{
 	Short: "停止桌面程式",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		nPid, err := launcher.Stop()
+		nPid, err := bootstrap.StopLauncher()
 		if err != nil {
 			logger.Error(args[0] + ": " + err.Error())
 			return err

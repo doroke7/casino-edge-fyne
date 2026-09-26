@@ -14,7 +14,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"landan-desktop-fyne/bootstrap/config"
+	"landan-desktop-fyne/bootstrap"
 	"landan-desktop-fyne/internal/camera"
 )
 
@@ -94,7 +94,7 @@ func ShutdownCamera() {
 
 func (v *cameraView) start() {
 
-	oCameraConfig := config.CONFIG.CAMERA
+	oCameraConfig := bootstrap.CONFIG.CAMERA
 
 	sPath, err := camera.NewRecordingPath(oCameraConfig.RECORD_DIRECTORY)
 	if err != nil {

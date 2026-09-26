@@ -1,4 +1,4 @@
-// Package launcher runs the desktop app as a detached background process and stops it again.
+// launcher.go runs the desktop app as a detached background process and stops it again.
 // The process id is kept in ./runtime/desktop/desktop.pid, its output in desktop.log.
 //
 // Everything lives in this one file and only uses APIs that compile on every OS;
@@ -7,7 +7,8 @@
 //	"windows"          Windows
 //	"darwin", "linux"  Unix (Go has no GOOS called "unix", so list them)
 //	anything else      not supported
-package launcher
+
+package bootstrap
 
 import (
 	"fmt"
@@ -21,15 +22,15 @@ import (
 	"time"
 )
 
-var sDirectory = filepath.Join("runtime", "desktop")
+var sLauncherDirectory = filepath.Join("runtime", "desktop")
 
-// LogPath is where the background process writes its output.
-func LogPath() string { return filepath.Join(sDirectory, "desktop.log") }
+// LauncherLogPath is where the background process writes its output.
+func LauncherLogPath() string { return filepath.Join(sLauncherDirectory, "desktop.log") }
 
-func pidPath() string { return filepath.Join(sDirectory, "desktop.pid") }
+func launcherPidPath() string { return filepath.Join(sLauncherDirectory, "desktop.pid") }
 
-func readPid() (int, bool) {
-	aData, err := os.ReadFile(pidPath())
+func readLauncherPid() (int, bool) {
+	aData, err := os.ReadFile(launcherPidPath())
 	if err != nil {
 		return 0, false
 	}
@@ -37,49 +38,49 @@ func readPid() (int, bool) {
 	return nPid, err == nil && nPid > 0
 }
 
-// Start runs this executable without arguments (the window) in the background.
+// StartLauncher runs this executable without arguments (the window) in the background.
 // started is false, and nPid is the existing process, if it is already running.
-func Start() (nPid int, started bool, err error) {
+func StartLauncher() (nPid int, started bool, err error) {
 
 	sExe, err := os.Executable()
 	if err != nil {
 		return 0, false, err
 	}
 
-	if nOld, ok := readPid(); ok && running(nOld, sExe) {
+	if nOld, ok := readLauncherPid(); ok && runningLauncher(nOld, sExe) {
 		return nOld, false, nil
 	}
 
-	if err := os.MkdirAll(sDirectory, 0o755); err != nil {
+	if err := os.MkdirAll(sLauncherDirectory, 0o755); err != nil {
 		return 0, false, err
 	}
 
-	nPid, err = spawn(sExe)
+	nPid, err = spawnLauncher(sExe)
 	if err != nil {
 		return 0, false, err
 	}
-	if err := os.WriteFile(pidPath(), []byte(strconv.Itoa(nPid)), 0o644); err != nil {
+	if err := os.WriteFile(launcherPidPath(), []byte(strconv.Itoa(nPid)), 0o644); err != nil {
 		return 0, false, err
 	}
 
 	// Wait a moment: a bad config makes the app exit at once, and that should be reported.
 	time.Sleep(1500 * time.Millisecond)
-	if !running(nPid, sExe) {
-		os.Remove(pidPath())
-		return 0, false, fmt.Errorf("程式啟動後立刻結束,日誌 %s:\n%s", LogPath(), tail(LogPath(), 5))
+	if !runningLauncher(nPid, sExe) {
+		os.Remove(launcherPidPath())
+		return 0, false, fmt.Errorf("程式啟動後立刻結束,日誌 %s:\n%s", LauncherLogPath(), tailLauncher(LauncherLogPath(), 5))
 	}
 	return nPid, true, nil
 }
 
-// spawn starts sExe in the background and returns its pid.
+// spawnLauncher starts sExe in the background and returns its pid.
 // The working directory stays the project root: the app reads ./config from it.
-func spawn(sExe string) (int, error) {
+func spawnLauncher(sExe string) (int, error) {
 
 	switch runtime.GOOS {
 
 	case "windows":
 		// A child of a Windows process keeps running after its parent exits.
-		oLog, err := os.OpenFile(LogPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+		oLog, err := os.OpenFile(LauncherLogPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 		if err != nil {
 			return 0, err
 		}
@@ -97,7 +98,7 @@ func spawn(sExe string) (int, error) {
 	case "darwin", "linux":
 		// Let a shell start it with nohup in the background and print its pid.
 		// nohup makes it ignore SIGHUP, so closing the terminal that ran `docker compose up` does not kill it.
-		aOutput, err := exec.Command("sh", "-c", `nohup "$0" >>"$1" 2>&1 </dev/null & echo $!`, sExe, LogPath()).Output()
+		aOutput, err := exec.Command("sh", "-c", `nohup "$0" >>"$1" 2>&1 </dev/null & echo $!`, sExe, LauncherLogPath()).Output()
 		if err != nil {
 			return 0, err
 		}
@@ -108,39 +109,39 @@ func spawn(sExe string) (int, error) {
 	}
 }
 
-// Stop asks the background process to quit (so the recording is finalized) and waits for it.
+// StopLauncher asks the background process to quit (so the recording is finalized) and waits for it.
 // nPid is 0 if nothing was running.
-func Stop() (nPid int, err error) {
+func StopLauncher() (nPid int, err error) {
 
 	sExe, err := os.Executable()
 	if err != nil {
 		return 0, err
 	}
 
-	nPid, ok := readPid()
-	if !ok || !running(nPid, sExe) {
-		os.Remove(pidPath())
+	nPid, ok := readLauncherPid()
+	if !ok || !runningLauncher(nPid, sExe) {
+		os.Remove(launcherPidPath())
 		return 0, nil
 	}
 
-	if err := terminate(nPid); err != nil {
+	if err := terminateLauncher(nPid); err != nil {
 		return nPid, err
 	}
-	for i := 0; i < 75 && running(nPid, sExe); i++ { // 最多等 15 秒
+	for i := 0; i < 75 && runningLauncher(nPid, sExe); i++ { // 最多等 15 秒
 		time.Sleep(200 * time.Millisecond)
 	}
-	if running(nPid, sExe) {
-		if err := kill(nPid); err != nil {
+	if runningLauncher(nPid, sExe) {
+		if err := killLauncher(nPid); err != nil {
 			return nPid, err
 		}
 	}
 
-	os.Remove(pidPath())
+	os.Remove(launcherPidPath())
 	return nPid, nil
 }
 
-// running is true if nPid is alive AND is our executable (a stale pid file may point at an unrelated process).
-func running(nPid int, sExe string) bool {
+// runningLauncher is true if nPid is alive AND is our executable (a stale pid file may point at an unrelated process).
+func runningLauncher(nPid int, sExe string) bool {
 
 	switch runtime.GOOS {
 
@@ -157,8 +158,8 @@ func running(nPid int, sExe string) bool {
 	}
 }
 
-// terminate asks the process to quit.
-func terminate(nPid int) error {
+// terminateLauncher asks the process to quit.
+func terminateLauncher(nPid int) error {
 
 	oProcess, err := os.FindProcess(nPid)
 	if err != nil {
@@ -180,7 +181,7 @@ func terminate(nPid int) error {
 	}
 }
 
-func kill(nPid int) error {
+func killLauncher(nPid int) error {
 
 	oProcess, err := os.FindProcess(nPid)
 	if err != nil {
@@ -189,8 +190,8 @@ func kill(nPid int) error {
 	return oProcess.Kill()
 }
 
-// tail returns the last nLines lines of a file.
-func tail(sPath string, nLines int) string {
+// tailLauncher returns the last nLines lines of a file.
+func tailLauncher(sPath string, nLines int) string {
 	aData, err := os.ReadFile(sPath)
 	if err != nil {
 		return ""

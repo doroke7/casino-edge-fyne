@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"github.com/spf13/cobra"
 
-	"landan-desktop-fyne/bootstrap/config"
+	"landan-desktop-fyne/bootstrap"
 	"landan-desktop-fyne/cmd/desktop"
 	"landan-desktop-fyne/ui"
 )
@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 	SilenceUsage:  true, // a config error is not a usage error
 	SilenceErrors: true, // Execute prints it once
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := config.CONFIG.Validate(); err != nil {
+		if err := bootstrap.CONFIG.Validate(); err != nil {
 			return err
 		}
 
