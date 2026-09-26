@@ -1,0 +1,29 @@
+package down
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"landan-desktop-fyne/bootstrap/launcher"
+	"landan-desktop-fyne/internal/logger"
+)
+
+var Command = &cobra.Command{
+	Use:   "down SERVICE",
+	Short: "停止桌面程式",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		nPid, err := launcher.Stop()
+		if err != nil {
+			logger.Error(args[0] + ": " + err.Error())
+			return err
+		}
+		if nPid == 0 {
+			logger.Info(args[0] + ": 沒有在執行")
+			return nil
+		}
+		logger.Info(fmt.Sprintf("%s: 已停止 (pid %d)", args[0], nPid))
+		return nil
+	},
+}
