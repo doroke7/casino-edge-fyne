@@ -10,6 +10,7 @@ import (
 
 	"landan-desktop-fyne/bootstrap"
 	"landan-desktop-fyne/cmd/desktop"
+	"landan-desktop-fyne/cmd/ir"
 	"landan-desktop-fyne/ui"
 )
 
@@ -36,7 +37,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(desktop.Command)
+	rootCmd.AddCommand(desktop.Command, ir.Command)
 }
 
 // Execute runs the root command; called from the top-level main.go.

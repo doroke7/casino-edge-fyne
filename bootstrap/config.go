@@ -12,6 +12,11 @@ import (
 
 //nolint:stylecheck,revive
 type Config struct {
+	SERVICES struct {
+		IR struct {
+			PORT string `mapstructure:"port"`
+		} `mapstructure:"ir"`
+	} `mapstructure:"services"`
 	DEFAULT struct {
 		DEBUG bool `mapstructure:"debug"`
 	} `mapstructure:"default"`

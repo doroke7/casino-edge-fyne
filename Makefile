@@ -8,6 +8,7 @@ help:
 	@echo "make up      編譯並用 docker compose 在背景啟動"
 	@echo "make down    停止"
 	@echo "make logs    看背景程式的日誌"
+	@echo "make protoc  由 proto/ 產生 pb/"
 	@echo "make clean   刪除 bin/"
 
 .PHONY: build
@@ -32,6 +33,14 @@ down:
 .PHONY: logs
 logs:
 	tail -f runtime/desktop/desktop.log
+
+.PHONY: protoc
+protoc:
+	@protoc \
+	-I ./proto \
+	--go_out=paths=source_relative:./pb \
+	--go-grpc_out=paths=source_relative:./pb \
+	$$(find ./proto/ir -name "*.proto")
 
 .PHONY: clean
 clean:
