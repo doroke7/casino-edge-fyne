@@ -15,7 +15,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"landan-desktop-fyne/bootstrap"
-	"landan-desktop-fyne/internal/camera"
+	"landan-desktop-fyne/internal/helper"
 )
 
 type cameraView struct {
@@ -96,7 +96,7 @@ func (v *cameraView) start() {
 
 	oCameraConfig := bootstrap.CONFIG.CAMERA
 
-	sPath, err := camera.NewRecordingPath(oCameraConfig.RECORD_DIRECTORY)
+	sPath, err := helper.NewRecordingPath(oCameraConfig.RECORD_DIRECTORY)
 	if err != nil {
 		v.status.SetText("錯誤: " + err.Error())
 		return
@@ -104,7 +104,7 @@ func (v *cameraView) start() {
 
 	var sSnapshotDir string
 	if oCameraConfig.SNAPSHOT_INTERVAL > 0 {
-		sSnapshotDir, err = camera.NewSnapshotDir(oCameraConfig.SNAPSHOT_DIRECTORY)
+		sSnapshotDir, err = helper.NewSnapshotDir(oCameraConfig.SNAPSHOT_DIRECTORY)
 		if err != nil {
 			v.status.SetText("錯誤: " + err.Error())
 			return
@@ -133,7 +133,7 @@ func (v *cameraView) start() {
 		// if the previous frame has not been drawn yet, drop this one.
 		var bPending atomic.Bool
 
-		oOptions := camera.Options{
+		oOptions := helper.Options{
 			Width:            oCameraConfig.WIDTH,
 			Height:           oCameraConfig.HEIGHT,
 			Framerate:        oCameraConfig.FRAMERATE,
@@ -146,7 +146,7 @@ func (v *cameraView) start() {
 			SnapshotEvery:    time.Duration(oCameraConfig.SNAPSHOT_INTERVAL) * time.Second,
 		}
 
-		err := camera.Stream(oCtx, oOptions, func(oFrame image.Image) {
+		err := helper.Stream(oCtx, oOptions, func(oFrame image.Image) {
 			if oCtx.Err() != nil || !bPending.CompareAndSwap(false, true) {
 				return
 			}

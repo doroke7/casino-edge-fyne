@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"landan-desktop-fyne/bootstrap"
-	"landan-desktop-fyne/internal/logger"
+	"landan-desktop-fyne/internal/helper"
 )
 
 var Command = &cobra.Command{
@@ -16,14 +16,14 @@ var Command = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		nPid, bStarted, err := bootstrap.StartLauncher()
 		if err != nil {
-			logger.Error(args[0] + ": " + err.Error())
+			helper.Error(args[0] + ": " + err.Error())
 			return err
 		}
 		if !bStarted {
-			logger.Info(fmt.Sprintf("%s: 已經在執行 (pid %d)", args[0], nPid))
+			helper.Info(fmt.Sprintf("%s: 已經在執行 (pid %d)", args[0], nPid))
 			return nil
 		}
-		logger.Info(fmt.Sprintf("%s: 已啟動 (pid %d),日誌 %s", args[0], nPid, bootstrap.LauncherLogPath()))
+		helper.Info(fmt.Sprintf("%s: 已啟動 (pid %d),日誌 %s", args[0], nPid, bootstrap.LauncherLogPath()))
 		return nil
 	},
 }

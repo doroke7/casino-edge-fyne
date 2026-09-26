@@ -1,7 +1,7 @@
-// Package camera captures the default webcam through ffmpeg (avfoundation),
+// Package helper captures the default webcam through ffmpeg (avfoundation),
 // previewing it frame by frame while recording it to an mp4 file
 // and saving a still snapshot at a fixed interval.
-package camera
+package helper
 
 import (
 	"bufio"

@@ -1,5 +1,5 @@
-// Package logger prints what docker compose expects to read: JSON message lines and the metadata.
-package logger
+// Package helper prints what docker compose expects to read: JSON message lines and the metadata.
+package helper
 
 import (
 	"encoding/json"
