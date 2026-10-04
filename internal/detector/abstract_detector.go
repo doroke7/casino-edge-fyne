@@ -1,4 +1,4 @@
-package outputApplicationOnnxDetector
+package detector
 
 import (
 	"bytes"
@@ -33,22 +33,22 @@ type AbstractDetector struct {
 	height     int
 }
 
-func NewAbstractDetector(oAbstractOnnx *outputApplicationOnnx.AbstractOnnx, sModelPath string) (*AbstractDetector, error) {
-	aInputs, aOutputs, err := onnxruntime.GetInputOutputInfo(sModelPath)
+func NewAbstractDetector(oAbstractOnnx *outputApplicationOnnx.AbstractOnnx, sPath string) (*AbstractDetector, error) {
+	aInputs, aOutputs, err := onnxruntime.GetInputOutputInfo(sPath)
 	if err != nil {
-		return nil, fmt.Errorf("read model %s: %w", sModelPath, err)
+		return nil, fmt.Errorf("read model %s: %w", sPath, err)
 	}
 	if len(aInputs) != 1 || len(aOutputs) != 1 {
-		return nil, fmt.Errorf("model %s: want 1 input and 1 output, got %d and %d", sModelPath, len(aInputs), len(aOutputs))
+		return nil, fmt.Errorf("model %s: want 1 input and 1 output, got %d and %d", sPath, len(aInputs), len(aOutputs))
 	}
 	aShape := aInputs[0].Dimensions
 	if len(aShape) != 4 || aShape[1] != 3 || aShape[2] <= 0 || aShape[3] <= 0 {
-		return nil, fmt.Errorf("model %s: input shape %v is not a fixed [1, 3, H, W]", sModelPath, aShape)
+		return nil, fmt.Errorf("model %s: input shape %v is not a fixed [1, 3, H, W]", sPath, aShape)
 	}
 
-	oSession, err := onnxruntime.NewDynamicAdvancedSession(sModelPath, []string{aInputs[0].Name}, []string{aOutputs[0].Name}, nil)
+	oSession, err := onnxruntime.NewDynamicAdvancedSession(sPath, []string{aInputs[0].Name}, []string{aOutputs[0].Name}, nil)
 	if err != nil {
-		return nil, fmt.Errorf("load model %s: %w", sModelPath, err)
+		return nil, fmt.Errorf("load model %s: %w", sPath, err)
 	}
 
 	return &AbstractDetector{
