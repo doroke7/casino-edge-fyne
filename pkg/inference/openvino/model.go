@@ -1,14 +1,55 @@
-//go:build openvino || darwin
-
 // Package openvino 用 OpenVINO 的 C API 直接讀 ultralytics 匯出的 OpenVINO 模型（.xml 加 .bin）。
-// macOS 預設就會編進來（要先 brew install openvino）；Linux、Windows 要加 -tags openvino 才會編進來。
+// 所有平台都會編進來，編譯機器要先裝好 OpenVINO C API（macOS: brew install openvino）。
 package openvino
 
+// cgo 是怎麼作用的：
+//
+//  1. 編譯時，Go 掃描有 import "C" 的檔案。import "C" 正上方緊貼的註解就是一小段 C 程式（下面那段 #include），
+//     cgo 讀它就知道有哪些 C 的型別與函式可以用，例如 C.ov_core_t、C.ov_core_create。
+//  2. cgo 會自動產生轉接層：Go 呼叫 C.ov_xxx，先進轉接函式，再由它呼叫真正的 C 函式。
+//  3. #cgo 指令告訴編譯器去哪找東西，寫在 cgo_darwin.go、cgo_linux.go、cgo_windows.go（各系統不同）：
+//     CFLAGS  -I<目錄>   編譯 C 程式時，去這個目錄找 openvino.h
+//     LDFLAGS -lopenvino_c  連結時，把 libopenvino_c 連進來
+//  4. cgo 把產生的 C 程式交給系統的 C 編譯器（clang / gcc）編譯，再和 Go 程式連結成一個執行檔。
+//     所以編譯的機器要有 C 編譯器，也要有 OpenVINO 的標頭檔與函式庫，缺一樣都會連結失敗。
+//  5. 執行時，作業系統載入 libopenvino_c（.dylib / .so / .dll），Go 呼叫 C.ov_xxx 就進到 OpenVINO 的
+//     C 函式，由它讀 .xml 與 .bin、用 CPU 推論，再把結果交回 Go。
+//
+//     你的 Go 程式 → cgo 轉接層 → libopenvino_c（C/C++）→ 推論結果 → 回到 Go
+//
+// 各作業系統的分岔：
+//
+//	                         go build
+//	                            │
+//	            Go 看 GOOS（目標系統），只挑一個 cgo_<系統>.go
+//	                            │
+//	        ┌───────────────────┼───────────────────┐
+//	        ▼                   ▼                   ▼
+//	  GOOS=darwin         GOOS=linux          GOOS=windows
+//	  cgo_darwin.go       cgo_linux.go        cgo_windows.go
+//	        │                   │                   │
+//	  -I/opt/homebrew     只有 -lopenvino_c   只有 -lopenvino_c
+//	  /include            （標頭檔在系統      （路徑靠 CGO_CFLAGS /
+//	  -L/opt/homebrew      預設位置，或靠      CGO_LDFLAGS 指定）
+//	  /lib -rpath          CGO_* 指定）             │
+//	        │                   │                   │
+//	  clang               gcc                 MinGW gcc
+//	        │                   │                   │
+//	        └───────────────────┼───────────────────┘
+//	                            ▼
+//	              model.go（三個系統都一樣）
+//	          C.ov_xxx 呼叫 OpenVINO，邏輯完全相同
+//	                            │
+//	                            ▼
+//	              執行檔 → 執行時載入 libopenvino_c
+//	              （.dylib / .so / .dll，各系統不同）
+//
+//	三個系統唯一的差別是：標頭檔在哪、函式庫在哪、用哪個 C 編譯器，
+//	也就是 cgo_<系統>.go 裡那幾行 #cgo。
+//
+// 注意：這段說明和下面的 C 程式之間要空一行；註解緊貼 import "C" 的話，會被當成 C 程式。
+
 /*
-#cgo darwin CFLAGS: -I/opt/homebrew/include
-#cgo darwin LDFLAGS: -L/opt/homebrew/lib -lopenvino_c -Wl,-rpath,/opt/homebrew/lib
-#cgo linux LDFLAGS: -lopenvino_c
-#cgo windows LDFLAGS: -lopenvino_c
 #include <stdlib.h>
 #include <openvino/c/openvino.h>
 */

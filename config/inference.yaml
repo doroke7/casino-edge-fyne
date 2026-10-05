@@ -1,7 +1,7 @@
 # 推論引擎：
 #   onnx     用 onnxruntime 讀下面每個模型的 onnx（.onnx）（預設）。
 #   openvino 用 OpenVINO 直接讀下面每個模型的 openvino（.xml），不再用 onnx 模型。
-#            要先裝好 OpenVINO（macOS: brew install openvino）；macOS 預設就會編進執行檔，Linux、Windows 要用 -tags openvino 編譯。
+#            要先裝好 OpenVINO（macOS: brew install openvino）；所有平台都會編進執行檔，編譯的機器沒裝 OpenVINO 會連結失敗。
 engine: "openvino"
 
 
