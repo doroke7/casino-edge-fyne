@@ -59,7 +59,7 @@ Python 做桌面程式的缺點。python 比較拿不到全部os 的性能
 
 ### command die-predictor
 
-辨識目錄下所有圖片中的骰子，印出每顆骰子的框、信心與耗時。圖片依序辨識，需要從專案根目錄執行（要讀 `config/onnx.yaml`）。
+辨識目錄下所有圖片中的骰子，印出每顆骰子的框、信心與耗時。圖片依序辨識，需要從專案根目錄執行（要讀 `config/inference.yaml`）。
 
 ```bash
 # 或
@@ -94,7 +94,7 @@ a.jpg：共偵測到 2 張撲克牌
   #2 poker (0.97) box=(300,60,460,300) Back (1.00)
 ```
 
-上面的數字是示意，不是實際跑出來的結果。模型路徑與門檻在 `config/onnx.yaml` 的 `detect.poker.card`、`classify.poker.card`、`classify.poker.rank`、`classify.poker.suit`。
+上面的數字是示意，不是實際跑出來的結果。模型路徑與門檻在 `config/inference.yaml` 的 `detect.poker.card`、`classify.poker.card`、`classify.poker.rank`、`classify.poker.suit`。
 
 ## 推論性能：poker-predictor
 

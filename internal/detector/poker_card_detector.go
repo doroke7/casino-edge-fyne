@@ -6,7 +6,7 @@ import (
 
 	bootstrap "landan-desktop-fyne/bootstrap"
 	domain "landan-desktop-fyne/internal/domain"
-	outputApplicationInference "landan-desktop-fyne/internal/output/application/inference"
+	pkgInference "landan-desktop-fyne/pkg/inference"
 )
 
 // PokerCardDetector 用 onnx 跑撲克牌的偵測模型（只有一個類別 Card），onnx 的細節都在 AbstractDetector。
@@ -14,13 +14,13 @@ type PokerCardDetector struct {
 	*AbstractDetector
 }
 
-// NewPokerCardDetector 從 config/onnx.yaml 的 detect.poker.card 讀模型路徑與信心門檻。
-func NewPokerCardDetector(oAbstractInference *outputApplicationInference.AbstractInference) (*PokerCardDetector, error) {
-	if bootstrap.CONFIG.ONNX.DETECT.POKER.CARD.PATH == "" {
-		return nil, fmt.Errorf("onnx.detect.poker.card.path is empty (is config/onnx.yaml filled in? run from the project root)")
+// NewPokerCardDetector 從 config/inference.yaml 的 detect.poker.card 讀模型路徑與信心門檻。
+func NewPokerCardDetector(oInference *pkgInference.Inference) (*PokerCardDetector, error) {
+	if bootstrap.CONFIG.INFERENCE.DETECT.POKER.CARD.ONNX == "" {
+		return nil, fmt.Errorf("inference.detect.poker.card.onnx is empty (is config/inference.yaml filled in? run from the project root)")
 	}
 
-	oAbstractDetector, err := NewAbstractDetector(oAbstractInference, bootstrap.CONFIG.ONNX.DETECT.POKER.CARD.PATH, bootstrap.CONFIG.OPENVINO.DETECT.POKER.CARD.PATH)
+	oAbstractDetector, err := NewAbstractDetector(oInference, bootstrap.CONFIG.INFERENCE.DETECT.POKER.CARD.ONNX, bootstrap.CONFIG.INFERENCE.DETECT.POKER.CARD.OPENVINO)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func NewPokerCardDetector(oAbstractInference *outputApplicationInference.Abstrac
 
 // Recognize 回傳圖中的撲克牌，依框的中心 x 由小到大排序。
 func (oSelf *PokerCardDetector) Recognize(aImage []byte) ([]*domain.Poker, error) {
-	aDetections, err := oSelf.AbstractDetector.Recognize(aImage, bootstrap.CONFIG.ONNX.DETECT.POKER.CARD.THRESHOLD)
+	aDetections, err := oSelf.AbstractDetector.Recognize(aImage, bootstrap.CONFIG.INFERENCE.DETECT.POKER.CARD.THRESHOLD)
 	if err != nil {
 		return nil, err
 	}

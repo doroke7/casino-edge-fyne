@@ -10,6 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+// InferenceModel 是 inference.yaml 裡一個模型的 onnx / openvino 路徑。
+type InferenceModel struct {
+	ONNX      string  `mapstructure:"onnx"`
+	OPENVINO  string  `mapstructure:"openvino"`
+	THRESHOLD float32 `mapstructure:"threshold"`
+}
+
 //nolint:stylecheck,revive
 type Config struct {
 	SERVICES struct {
@@ -19,87 +26,33 @@ type Config struct {
 	} `mapstructure:"services"`
 	INFERENCE struct {
 		ENGINE string `mapstructure:"engine"`
+		DETECT struct {
+			DIE struct {
+				CUBE InferenceModel `mapstructure:"cube"`
+				TOP  InferenceModel `mapstructure:"top"`
+			} `mapstructure:"die"`
+			POKER struct {
+				CARD InferenceModel `mapstructure:"card"`
+			} `mapstructure:"poker"`
+		} `mapstructure:"detect"`
+		CLASSIFY struct {
+			DIE struct {
+				VALUE InferenceModel `mapstructure:"value"`
+			} `mapstructure:"die"`
+			POKER struct {
+				CARD InferenceModel `mapstructure:"card"`
+				RANK InferenceModel `mapstructure:"rank"`
+				SUIT InferenceModel `mapstructure:"suit"`
+			} `mapstructure:"poker"`
+		} `mapstructure:"classify"`
 	} `mapstructure:"inference"`
 	ONNX struct {
 		LIBRARY          string            `mapstructure:"library"`
 		PROVIDER         string            `mapstructure:"provider"`
 		PROVIDER_OPTIONS map[string]string `mapstructure:"provider_options"`
-		DETECT           struct {
-			DIE struct {
-				CUBE struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"cube"`
-				TOP struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"top"`
-			} `mapstructure:"die"`
-			POKER struct {
-				CARD struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"card"`
-			} `mapstructure:"poker"`
-		} `mapstructure:"detect"`
-		CLASSIFY struct {
-			DIE struct {
-				VALUE struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"value"`
-			} `mapstructure:"die"`
-			POKER struct {
-				CARD struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"card"`
-				RANK struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"rank"`
-				SUIT struct {
-					PATH      string  `mapstructure:"path"`
-					THRESHOLD float32 `mapstructure:"threshold"`
-				} `mapstructure:"suit"`
-			} `mapstructure:"poker"`
-		} `mapstructure:"classify"`
 	} `mapstructure:"onnx"`
 	OPENVINO struct {
 		DEVICE string `mapstructure:"device"`
-		DETECT struct {
-			DIE struct {
-				CUBE struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"cube"`
-				TOP struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"top"`
-			} `mapstructure:"die"`
-			POKER struct {
-				CARD struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"card"`
-			} `mapstructure:"poker"`
-		} `mapstructure:"detect"`
-		CLASSIFY struct {
-			DIE struct {
-				VALUE struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"value"`
-			} `mapstructure:"die"`
-			POKER struct {
-				CARD struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"card"`
-				RANK struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"rank"`
-				SUIT struct {
-					PATH string `mapstructure:"path"`
-				} `mapstructure:"suit"`
-			} `mapstructure:"poker"`
-		} `mapstructure:"classify"`
 	} `mapstructure:"openvino"`
 	DEFAULT struct {
 		DEBUG bool `mapstructure:"debug"`

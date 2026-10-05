@@ -1,5 +1,5 @@
-// Package inference 定義偵測、分類模型共用的推論介面，讓上層不用知道底下是 onnxruntime 還是 OpenVINO。
-package inference
+// Package inferenceInterface 定義偵測、分類模型共用的推論介面，讓上層不用知道底下是 onnxruntime 還是 OpenVINO。
+package inferenceInterface
 
 // Model 是一個載入好、輸入尺寸固定的模型。
 type Model interface {

@@ -15,8 +15,8 @@ import (
 	inputApplicationCommandIrPredictor "landan-desktop-fyne/internal/input/application/command/ir/predictor"
 	inputApplicationRecognitionIrInference "landan-desktop-fyne/internal/input/application/recognition/ir/inference"
 
-	outputApplicationInference "landan-desktop-fyne/internal/output/application/inference"
 	outputApplicationInferencePipeline "landan-desktop-fyne/internal/output/application/inference/pipeline"
+	pkgInference "landan-desktop-fyne/pkg/inference"
 
 	usecaseApplicationAnyIrInference "landan-desktop-fyne/internal/usecase/application/any/ir/inference"
 	usecaseApplicationAnyIrPredictor "landan-desktop-fyne/internal/usecase/application/any/ir/predictor"
@@ -38,7 +38,7 @@ func InitRecognitionContainer(ctx context.Context, config bootstrap.Config) (*Re
 	wire.Build(
 
 		// onnx：onnxruntime 或 OpenVINO 由 config/inference.yaml 的 engine 決定
-		outputApplicationInference.NewAbstractInference,
+		pkgInference.NewInference,
 
 		// detector
 		detector.NewDieTopDetector,
@@ -75,7 +75,7 @@ func InitDiePredictorCommandContainer(ctx context.Context, config bootstrap.Conf
 	wire.Build(
 
 		// onnx
-		outputApplicationInference.NewAbstractInference,
+		pkgInference.NewInference,
 
 		// detector
 		detector.NewDieTopDetector,
@@ -110,7 +110,7 @@ func InitPokerPredictorCommandContainer(ctx context.Context, config bootstrap.Co
 	wire.Build(
 
 		// onnx
-		outputApplicationInference.NewAbstractInference,
+		pkgInference.NewInference,
 
 		// detector
 		detector.NewPokerCardDetector,

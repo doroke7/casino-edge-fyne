@@ -8,33 +8,3 @@ provider: "cpu"
 # https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html#summary-of-options
 provider_options: {}
 #  device_type: "CPU"
-
-# 每個模型：path 是 onnx 檔案，threshold 是信心低於它就丟掉（0 ~ 1）。
-detect:
-  die:
-    cube:
-      path: "./runs/detect/die/cube/result-1/weights/best.onnx"
-      threshold: 0.7
-    top:
-      path: "./runs/detect/die/top/result-1/weights/best.onnx"
-      threshold: 0.7
-  poker:
-    card:
-      path: "./runs/detect/poker/card/result-3/weights/best.onnx"
-      threshold: 0.7
-
-classify:
-  die:
-    value:
-      path: "./runs/classify/die/value/result-1/weights/best.onnx"
-      threshold: 0.7
-  poker:
-    card:
-      path: "./runs/classify/poker/card/result-2/weights/best.onnx"
-      threshold: 0.7
-    rank:
-      path: "./runs/classify/poker/rank/result-2/weights/best.onnx"
-      threshold: 0.7
-    suit:
-      path: "./runs/classify/poker/suit/result-2/weights/best.onnx"
-      threshold: 0.7

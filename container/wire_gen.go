@@ -13,24 +13,24 @@ import (
 	"landan-desktop-fyne/internal/detector"
 	"landan-desktop-fyne/internal/input/application/command/ir/predictor"
 	"landan-desktop-fyne/internal/input/application/recognition/ir/inference"
-	"landan-desktop-fyne/internal/output/application/inference"
 	"landan-desktop-fyne/internal/output/application/inference/pipeline"
 	"landan-desktop-fyne/internal/usecase/application/any/ir/inference"
 	"landan-desktop-fyne/internal/usecase/application/any/ir/predictor"
+	pkgInference "landan-desktop-fyne/pkg/inference"
 )
 
 // Injectors from wire.go:
 
 func InitRecognitionContainer(ctx context.Context, config bootstrap.Config) (*RecognitionContainer, error) {
-	abstractInference, err := outputApplicationInference.NewAbstractInference(ctx, config)
+	inference, err := pkgInference.NewInference(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	dieTopDetector, err := detector.NewDieTopDetector(abstractInference)
+	dieTopDetector, err := detector.NewDieTopDetector(inference)
 	if err != nil {
 		return nil, err
 	}
-	dieValueClassifier, err := classifier.NewDieValueClassifier(abstractInference)
+	dieValueClassifier, err := classifier.NewDieValueClassifier(inference)
 	if err != nil {
 		return nil, err
 	}
@@ -48,15 +48,15 @@ func InitRecognitionContainer(ctx context.Context, config bootstrap.Config) (*Re
 }
 
 func InitDiePredictorCommandContainer(ctx context.Context, config bootstrap.Config) (*DiePredictorCommandContainer, error) {
-	abstractInference, err := outputApplicationInference.NewAbstractInference(ctx, config)
+	inference, err := pkgInference.NewInference(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	dieTopDetector, err := detector.NewDieTopDetector(abstractInference)
+	dieTopDetector, err := detector.NewDieTopDetector(inference)
 	if err != nil {
 		return nil, err
 	}
-	dieValueClassifier, err := classifier.NewDieValueClassifier(abstractInference)
+	dieValueClassifier, err := classifier.NewDieValueClassifier(inference)
 	if err != nil {
 		return nil, err
 	}
@@ -70,23 +70,23 @@ func InitDiePredictorCommandContainer(ctx context.Context, config bootstrap.Conf
 }
 
 func InitPokerPredictorCommandContainer(ctx context.Context, config bootstrap.Config) (*PokerPredictorCommandContainer, error) {
-	abstractInference, err := outputApplicationInference.NewAbstractInference(ctx, config)
+	inference, err := pkgInference.NewInference(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	pokerCardDetector, err := detector.NewPokerCardDetector(abstractInference)
+	pokerCardDetector, err := detector.NewPokerCardDetector(inference)
 	if err != nil {
 		return nil, err
 	}
-	pokerFaceClassifier, err := classifier.NewPokerFaceClassifier(abstractInference)
+	pokerFaceClassifier, err := classifier.NewPokerFaceClassifier(inference)
 	if err != nil {
 		return nil, err
 	}
-	pokerRankClassifier, err := classifier.NewPokerRankClassifier(abstractInference)
+	pokerRankClassifier, err := classifier.NewPokerRankClassifier(inference)
 	if err != nil {
 		return nil, err
 	}
-	pokerSuitClassifier, err := classifier.NewPokerSuitClassifier(abstractInference)
+	pokerSuitClassifier, err := classifier.NewPokerSuitClassifier(inference)
 	if err != nil {
 		return nil, err
 	}

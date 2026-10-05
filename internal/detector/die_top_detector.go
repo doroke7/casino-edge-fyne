@@ -5,7 +5,7 @@ import (
 
 	bootstrap "landan-desktop-fyne/bootstrap"
 	domain "landan-desktop-fyne/internal/domain"
-	outputApplicationInference "landan-desktop-fyne/internal/output/application/inference"
+	pkgInference "landan-desktop-fyne/pkg/inference"
 )
 
 // DieTopDetector 用 onnx 跑 die 的偵測模型，onnx 的細節都在 AbstractDetector。
@@ -14,18 +14,18 @@ type DieTopDetector struct {
 	threshold float32
 }
 
-// NewDieTopDetector 從 config/onnx.yaml 的 detect.die.top 讀模型路徑與信心門檻。
-func NewDieTopDetector(oAbstractInference *outputApplicationInference.AbstractInference) (*DieTopDetector, error) {
-	if bootstrap.CONFIG.ONNX.DETECT.DIE.TOP.PATH == "" {
-		return nil, fmt.Errorf("onnx.detect.die.top.path is empty (is config/onnx.yaml filled in? run from the project root)")
+// NewDieTopDetector 從 config/inference.yaml 的 detect.die.top 讀模型路徑與信心門檻。
+func NewDieTopDetector(oInference *pkgInference.Inference) (*DieTopDetector, error) {
+	if bootstrap.CONFIG.INFERENCE.DETECT.DIE.TOP.ONNX == "" {
+		return nil, fmt.Errorf("inference.detect.die.top.onnx is empty (is config/inference.yaml filled in? run from the project root)")
 	}
 
-	oAbstractDetector, err := NewAbstractDetector(oAbstractInference, bootstrap.CONFIG.ONNX.DETECT.DIE.TOP.PATH, bootstrap.CONFIG.OPENVINO.DETECT.DIE.TOP.PATH)
+	oAbstractDetector, err := NewAbstractDetector(oInference, bootstrap.CONFIG.INFERENCE.DETECT.DIE.TOP.ONNX, bootstrap.CONFIG.INFERENCE.DETECT.DIE.TOP.OPENVINO)
 	if err != nil {
 		return nil, err
 	}
 
-	return &DieTopDetector{AbstractDetector: oAbstractDetector, threshold: bootstrap.CONFIG.ONNX.DETECT.DIE.TOP.THRESHOLD}, nil
+	return &DieTopDetector{AbstractDetector: oAbstractDetector, threshold: bootstrap.CONFIG.INFERENCE.DETECT.DIE.TOP.THRESHOLD}, nil
 }
 
 func (oSelf *DieTopDetector) Recognize(aImage []byte) ([]*domain.Die, error) {
